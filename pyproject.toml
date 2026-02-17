@@ -1,0 +1,13 @@
+[project]
+name = "crypto-bot"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "imap-tools>=1.11.1",
+    "python-dotenv>=1.2.1",
+    "python-telegram-bot>=22.6",
+    "requests>=2.32.5",
+    "youtube-transcript-api>=1.2.4",
+]

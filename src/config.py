@@ -22,25 +22,14 @@ TARGET_SENDER = "ritam4jnu@gmail.com"  # Or whatever the actual sender is
 SAVE_TRANSCRIPTS = True # Set to False to disable saving transcripts
 LLM_MODEL = "claude-sonnet-4-6"
 PROCESSED_IDS_FILE = "processed_videos.json"
-POLL_INTERVAL = 60 # Seconds between polling checks (fallback for IDLE)
+POLL_INTERVAL = 10 # Seconds between polling checks (fallback for IDLE)
 
 SYSTEM_PROMPT = """
-You are an expert Crypto Trader and Analyst. 
-Your task is to analyze the provided YouTube video transcript and extract actionable intelligence.
+You are a concise crypto trading analyst. Analyze the transcript and extract:
+- Market sentiment (risk-on/off/neutral)
+- Key price levels (brief, e.g. "BTC: $60k support")
+- Trade setups (brief, actionable only)
+- 1-2 sentence summary
 
-Please structure your response in the following JSON format:
-{
-  "summary": "A brief 2-3 sentence summary of the video's main point.",
-  "risk_status": "RISK-ON | RISK-OFF | NEUTRAL",
-  "key_levels": [
-    "BTC Support: $60k",
-    "ETH Resistance: $3k"
-  ],
-  "trade_recommendations": [
-    "Buy BTC if it holds $60k",
-    "Short ETH at $3.2k"
-  ]
-}
-
-If the transcript is not about crypto trading, return: {"error": "Not a crypto/trading video."}
+Be terse. No fluff. If not a crypto/trading video, set the 'error' field.
 """

@@ -3,7 +3,12 @@ import re
 import time
 import requests
 from imap_tools import MailBox, A
-from src.config import EMAIL_USER, EMAIL_PASS, TARGET_SENDER, POLL_INTERVAL
+from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
+from src.config import (
+    EMAIL_USER, EMAIL_PASS, TARGET_SENDER, POLL_INTERVAL,
+    GOOGLE_REFRESH_TOKEN, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -53,6 +58,21 @@ def extract_youtube_link(html_body):
             
     return None
 
+def get_access_token():
+    """Refreshes and returns the access token using the refresh token."""
+    if not GOOGLE_REFRESH_TOKEN:
+        raise ValueError("Google Refresh Token is missing")
+        
+    creds = Credentials(
+        None,
+        refresh_token=GOOGLE_REFRESH_TOKEN,
+        token_uri="https://oauth2.googleapis.com/token",
+        client_id=GOOGLE_CLIENT_ID,
+        client_secret=GOOGLE_CLIENT_SECRET
+    )
+    creds.refresh(Request())
+    return creds.token
+
 def listen_for_emails(callback, poll_interval=POLL_INTERVAL):
     """
     Connects to Gmail and listens for new emails via IDLE.
@@ -61,8 +81,18 @@ def listen_for_emails(callback, poll_interval=POLL_INTERVAL):
     logger.info(f"Connecting to {EMAIL_USER}...")
     
     try:
+        mailbox = MailBox('imap.gmail.com')
+        
+        if GOOGLE_REFRESH_TOKEN:
+            logger.info("Authenticating via OAuth2...")
+            access_token = get_access_token()
+            mailbox.xoauth2(EMAIL_USER, access_token)
+        else:
+            logger.info("Authenticating via Password...")
+            mailbox.login(EMAIL_USER, EMAIL_PASS)
+
         # Connect to Gmail
-        with MailBox('imap.gmail.com').login(EMAIL_USER, EMAIL_PASS) as mailbox:
+        with mailbox:
             logger.info("Connected. Waiting for new emails...")
             
             # Use the specified folder (Inbox by default)

@@ -1,44 +1,48 @@
 import requests
 import json
 import logging
-from src.config import OPENROUTER_API_KEY, OPENROUTER_URL, LLM_MODEL, SYSTEM_PROMPT
+from src.config import ANTHROPIC_API_KEY, ANTHROPIC_URL, ANTHROPIC_VERSION, LLM_MODEL, SYSTEM_PROMPT
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def analyze_transcript(transcript_text):
     """
-    Sends the transcript to OpenRouter for analysis.
+    Sends the transcript to Anthropic Claude for analysis.
     """
     logger.info(f"Sending transcript to AI ({LLM_MODEL}) for analysis...")
     
     headers = {
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-        "Content-Type": "application/json",
-        # Optional: Add site URL and name as per OpenRouter docs for rankings
-        "HTTP-Referer": "https://github.com/ritam/crypto-bot", 
-        "X-Title": "Crypto Analysis Bot"
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": ANTHROPIC_VERSION,
+        "content-type": "application/json",
     }
     
     data = {
         "model": LLM_MODEL,
+        "max_tokens": 1024,
+        "system": SYSTEM_PROMPT,
         "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": f"Here is the transcript:\n\n{transcript_text[:100000]}"} # Truncate if too long
+            {"role": "user", "content": f"Here is the transcript:\n\n{transcript_text[:100000]}"}  # Truncate if too long
         ],
-        "response_format": {"type": "json_object"}
     }
     
     try:
-        response = requests.post(OPENROUTER_URL, headers=headers, json=data)
+        response = requests.post(ANTHROPIC_URL, headers=headers, json=data)
         response.raise_for_status()
         
         result = response.json()
-        content = result['choices'][0]['message']['content']
+        content = result['content'][0]['text']
         
         # Parse JSON content
         try:
-            analysis = json.loads(content)
+            # Strip markdown code fences if present
+            clean = content.strip()
+            if clean.startswith("```"):
+                clean = clean.split("```")[1]
+                if clean.startswith("json"):
+                    clean = clean[4:]
+            analysis = json.loads(clean.strip())
             return analysis
         except json.JSONDecodeError:
             logger.error("Failed to parse AI response as JSON.")

@@ -18,7 +18,7 @@ def get_transcript(video_id):
             proxy_username=WEBSHARE_PROXY_USERNAME,
             proxy_password=WEBSHARE_PROXY_PASSWORD,
         )
-        api = YouTubeTranscriptApi(proxies=proxy_config)
+        api = YouTubeTranscriptApi(proxy_config=proxy_config)
         transcript = api.fetch(video_id)
 
         text = ' '.join([entry.text for entry in transcript])

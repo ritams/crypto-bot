@@ -206,9 +206,8 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-transcripts/
-processed_videos.json
-
-
+# Local Data
+data/
+secrets/
 
 

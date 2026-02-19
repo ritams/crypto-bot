@@ -17,7 +17,7 @@ async def send_telegram_message(message):
     except Exception as e:
         logger.error(f"Failed to send Telegram message: {e}")
 
-def format_analysis_for_telegram(analysis_json):
+def format_analysis_for_telegram(analysis_json, received_at=None):
     """
     Formats the JSON analysis into a readable Telegram message.
     """
@@ -30,8 +30,11 @@ def format_analysis_for_telegram(analysis_json):
     levels = "\n".join([f"• {lvl}" for lvl in analysis_json.get("key_levels", [])])
     trades = "\n".join([f"• {trade}" for trade in analysis_json.get("trade_recommendations", [])])
     
+    date_str = received_at.strftime("%Y-%m-%d %H:%M:%S") if received_at else "Unknown"
+    
     message = (
-        f"📊 *Crypto Analysis Bot*\n\n"
+        f"📊 *Crypto Analysis Bot*\n"
+        f"🕒 *Date:* `{date_str}`\n\n"
         f"**Risk Status:** `{risk}`\n\n"
         f"**Summary:**\n{summary}\n\n"
         f"**Key Levels:**\n{levels}\n\n"

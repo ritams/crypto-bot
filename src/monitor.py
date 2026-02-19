@@ -116,9 +116,10 @@ def listen_for_emails(callback, poll_interval=POLL_INTERVAL):
                         logger.info(f"Received email from {msg.from_}: {msg.subject}")
                         
                         video_id = extract_youtube_link(msg.html or msg.text)
+                        received_at = msg.date
                         if video_id:
-                            logger.info(f"Found YouTube Video ID: {video_id}")
-                            callback(video_id)
+                            logger.info(f"Found YouTube Video ID: {video_id} (Received at: {received_at})")
+                            callback(video_id, received_at=received_at)
                         else:
                             logger.warning("No YouTube link found in the email.")
                             

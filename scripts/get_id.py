@@ -1,4 +1,10 @@
+import os
+import sys
 import asyncio
+
+# Add the project root to sys.path to allow importing from src
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from telegram import Bot
 from src.config import TELEGRAM_TOKEN
 

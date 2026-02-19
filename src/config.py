@@ -25,7 +25,7 @@ OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 TARGET_SENDER = "ritam4jnu@gmail.com"  # Or whatever the actual sender is
 SAVE_TRANSCRIPTS = True # Set to False to disable saving transcripts
 LLM_MODEL = "claude-sonnet-4-6"
-PROCESSED_IDS_FILE = "processed_videos.json"
+PROCESSED_IDS_FILE = "data/processed_videos.json"
 POLL_INTERVAL = 10 # Seconds between polling checks (fallback for IDLE)
 
 SYSTEM_PROMPT = """

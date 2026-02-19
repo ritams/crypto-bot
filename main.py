@@ -38,15 +38,15 @@ def save_processed_id(video_id):
 def save_transcript_to_file(video_id, text):
     # ... existing save_transcript_to_file ...
     try:
-        os.makedirs("transcripts", exist_ok=True)
-        filename = f"transcripts/{video_id}.txt"
+        os.makedirs("data/transcripts", exist_ok=True)
+        filename = f"data/transcripts/{video_id}.txt"
         with open(filename, "w") as f:
             f.write(text)
         logger.info(f"Transcript saved to {filename}")
     except Exception as e:
         logger.error(f"Failed to save transcript: {e}")
 
-def process_video(video_id):
+def process_video(video_id, received_at=None):
     """
     Orchestrates the pipeline for a single video.
     """
@@ -76,7 +76,7 @@ def process_video(video_id):
         return
 
     # 3. Notify
-    message = format_analysis_for_telegram(analysis)
+    message = format_analysis_for_telegram(analysis, received_at=received_at)
     logger.info(f"Telegram message: {message}")
     
     # Run async function in sync context

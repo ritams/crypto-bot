@@ -4,6 +4,7 @@ import logging
 import subprocess
 import requests
 import yt_dlp
+import imageio_ffmpeg
 from youtube_transcript_api import YouTubeTranscriptApi
 from src.config import OPENAI_API_KEY
 
@@ -58,10 +59,11 @@ def transcribe_with_whisper(video_id):
 
         # Split into 10-minute chunks using ffmpeg
         chunk_pattern = os.path.join(audio_dir, "chunk_%03d.m4a")
+        ffmpeg_path = imageio_ffmpeg.get_ffmpeg_exe()
         logger.info(f"Splitting audio into {CHUNK_DURATION_SECS // 60}-min chunks...")
         subprocess.run(
             [
-                "ffmpeg", "-i", audio_path,
+                ffmpeg_path, "-i", audio_path,
                 "-f", "segment",
                 "-segment_time", str(CHUNK_DURATION_SECS),
                 "-c", "copy",

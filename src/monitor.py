@@ -1,17 +1,34 @@
 import logging
+import os
+import json
 import re
 import time
 import requests
+import imap_tools
 from imap_tools import MailBox, A
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 from src.config import (
     EMAIL_USER, EMAIL_PASS, TARGET_SENDER, POLL_INTERVAL,
-    GOOGLE_REFRESH_TOKEN, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+    GOOGLE_REFRESH_TOKEN, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET,
+    PROCESSED_IDS_FILE
 )
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+def load_processed_email_uids():
+    """Loads processed email UIDs from the JSON file."""
+    if os.path.exists(PROCESSED_IDS_FILE):
+        try:
+            with open(PROCESSED_IDS_FILE, "r") as f:
+                data = json.load(f)
+            if isinstance(data, dict):
+                return set(data.get("emails", []))
+        except Exception:
+            pass
+    return set()
+
 
 def extract_youtube_link(html_body):
     """
@@ -110,10 +127,13 @@ def listen_for_emails(callback, poll_interval=POLL_INTERVAL):
                     else:
                         logger.info(f"Polling check (timeout={poll_interval}s)...")
                     
-                    # ALWAYS check for unseen emails after wait returns
+                    # ALWAYS check for emails after wait returns
                     # This covers both IDLE events and Polling fallbacks
-                    for msg in mailbox.fetch(A(seen=False, from_=TARGET_SENDER), mark_seen=False):
+                    processed_uids = load_processed_email_uids()
+                    for msg in mailbox.fetch(A(from_=TARGET_SENDER), mark_seen=False):
                         email_uid = msg.uid
+                        if email_uid in processed_uids:
+                            continue
                         logger.info(f"Received email UID={email_uid} from {msg.from_}: {msg.subject}")
 
                         video_id = extract_youtube_link(msg.html or msg.text)
@@ -126,7 +146,7 @@ def listen_for_emails(callback, poll_interval=POLL_INTERVAL):
                             callback(None, received_at=received_at, email_uid=email_uid)
 
                         # Mark email as seen after processing
-                        mailbox.seen(msg.uid, True)
+                        mailbox.flag(msg.uid, imap_tools.MailMessageFlags.SEEN, True)
                             
                 except KeyboardInterrupt:
                     break

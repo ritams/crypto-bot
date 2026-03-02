@@ -4,7 +4,7 @@ import asyncio
 import logging
 from src.config import SAVE_TRANSCRIPTS, PROCESSED_IDS_FILE
 from src.monitor import listen_for_emails
-from src.extractor import get_transcript
+from src.extractor import get_transcript, get_video_upload_date
 from src.analyst import analyze_transcript
 from src.notifier import send_telegram_message, format_analysis_for_telegram
 
@@ -79,24 +79,28 @@ def process_video(video_id, received_at=None, email_uid=None):
 
     logger.info(f"Processing Video ID: {video_id}")
 
-    # 1. Get Transcript (YouTube captions → Whisper fallback)
+    # 1. Get video upload date
+    upload_date = get_video_upload_date(video_id)
+    logger.info(f"Video upload date: {upload_date}")
+
+    # 2. Get Transcript (YouTube captions → Whisper fallback)
     transcript = get_transcript(video_id)
     if not transcript:
         logger.error("Aborting: No transcript found.")
         return
 
-    # 1b. Save Transcript if enabled
+    # 2b. Save Transcript if enabled
     if SAVE_TRANSCRIPTS:
         save_transcript_to_file(video_id, transcript)
 
-    # 2. Analyze
+    # 3. Analyze
     analysis = analyze_transcript(transcript)
     if not analysis:
         logger.error("Aborting: Analysis failed.")
         return
 
-    # 3. Notify
-    message = format_analysis_for_telegram(analysis, received_at=received_at)
+    # 4. Notify (use video upload date instead of email date)
+    message = format_analysis_for_telegram(analysis, received_at=upload_date or received_at)
     logger.info(f"Telegram message: {message}")
 
     try:

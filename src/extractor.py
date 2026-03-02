@@ -14,6 +14,20 @@ logger = logging.getLogger(__name__)
 CHUNK_DURATION_SECS = 600  # 10 minutes per chunk
 
 
+def get_video_upload_date(video_id):
+    """Fetches the upload date of a YouTube video using yt-dlp (no download)."""
+    try:
+        with yt_dlp.YoutubeDL({'quiet': True, 'no_warnings': True}) as ydl:
+            info = ydl.extract_info(f"https://www.youtube.com/watch?v={video_id}", download=False)
+            upload_date = info.get("upload_date")  # Format: YYYYMMDD
+            if upload_date:
+                from datetime import datetime
+                return datetime.strptime(upload_date, "%Y%m%d")
+    except Exception as e:
+        logger.warning(f"Could not fetch upload date for {video_id}: {e}")
+    return None
+
+
 def get_transcript(video_id):
     """
     Fetches the transcript for a YouTube video.

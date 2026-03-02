@@ -16,6 +16,7 @@ async def send_telegram_message(message):
         logger.info("Telegram message sent successfully.")
     except Exception as e:
         logger.error(f"Failed to send Telegram message: {e}")
+        raise
 
 def format_analysis_for_telegram(analysis_json, received_at=None):
     """

@@ -112,16 +112,21 @@ def listen_for_emails(callback, poll_interval=POLL_INTERVAL):
                     
                     # ALWAYS check for unseen emails after wait returns
                     # This covers both IDLE events and Polling fallbacks
-                    for msg in mailbox.fetch(A(seen=False, from_=TARGET_SENDER)):
-                        logger.info(f"Received email from {msg.from_}: {msg.subject}")
-                        
+                    for msg in mailbox.fetch(A(seen=False, from_=TARGET_SENDER), mark_seen=False):
+                        email_uid = msg.uid
+                        logger.info(f"Received email UID={email_uid} from {msg.from_}: {msg.subject}")
+
                         video_id = extract_youtube_link(msg.html or msg.text)
                         received_at = msg.date
                         if video_id:
                             logger.info(f"Found YouTube Video ID: {video_id} (Received at: {received_at})")
-                            callback(video_id, received_at=received_at)
+                            callback(video_id, received_at=received_at, email_uid=email_uid)
                         else:
-                            logger.warning("No YouTube link found in the email.")
+                            logger.warning(f"No YouTube link found in email UID={email_uid}.")
+                            callback(None, received_at=received_at, email_uid=email_uid)
+
+                        # Mark email as seen after processing
+                        mailbox.seen(msg.uid, True)
                             
                 except KeyboardInterrupt:
                     break

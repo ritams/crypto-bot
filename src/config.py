@@ -24,7 +24,7 @@ TARGET_SENDER = "admin@intothecryptoverse.com"  # Or whatever the actual sender 
 SAVE_TRANSCRIPTS = True # Set to False to disable saving transcripts
 LLM_MODEL = "claude-sonnet-4-6"
 PROCESSED_IDS_FILE = "data/processed_videos.json"
-POLL_INTERVAL = 10 # Seconds between polling checks (fallback for IDLE)
+POLL_INTERVAL = 300 # Seconds between polling checks (fallback for IDLE)
 
 SYSTEM_PROMPT = """
 You are a concise crypto trading analyst. Analyze the transcript and extract:

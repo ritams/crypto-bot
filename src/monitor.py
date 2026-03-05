@@ -149,11 +149,15 @@ def listen_for_emails(callback, poll_interval=POLL_INTERVAL):
                         mailbox.flag(msg.uid, imap_tools.MailMessageFlags.SEEN, True)
                             
                 except KeyboardInterrupt:
-                    break
+                    return
                 except Exception as e:
                     logger.error(f"Error in listener loop: {e}")
-                    time.sleep(10) # Prevent tight loop on error
-                    
+                    break  # Break inner loop to reconnect
+
     except Exception as e:
         logger.error(f"Connection failed: {e}")
-        raise
+
+    # Reconnect after connection loss
+    logger.info("Reconnecting in 10 seconds...")
+    time.sleep(10)
+    listen_for_emails(callback, poll_interval)
